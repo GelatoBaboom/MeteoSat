@@ -1,0 +1,13 @@
+{
+    "name": "SerialDataReader",
+    "version": "0.0.1",
+    "dependencies": {
+
+        "serialport": "*",
+        "moment": "*"
+
+    },
+    "scripts": {
+        "getdata": "getdata.js"
+    }
+}
