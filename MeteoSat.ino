@@ -4,7 +4,7 @@ Adafruit_BMP280 bmp; // I2C
 
 #define LEDPIN D4
 #define GPIO_HC12 D3
-
+#define sleepSec 30
 String readSerialData() {
   if (Serial.available() > 0) {
     String inString = "";
@@ -20,7 +20,7 @@ String readSerialData() {
 }
 void goToSleep() {
 
-  Serial.println(F("DV_MSG:GoToSleepNow"));
+  Serial.println(("DV_MSG:GonnaSleepNow"));
   Serial.flush();
   delay(1000);
   digitalWrite(GPIO_HC12, LOW);
@@ -43,7 +43,7 @@ void goToSleep() {
       digitalWrite(LEDPIN, HIGH);
       delay(100);
     }
-    ESP.deepSleep((20 * 1000000));
+    ESP.deepSleep((sleepSec * 1000000));
   }
 
 }
@@ -79,7 +79,7 @@ void setup() {
   digitalWrite(GPIO_HC12, HIGH);
 
   if (!bmp.begin(0x76)) {
-    Serial.println(F("DV_ERROR:BMP_error"));
+    Serial.println(("DV_ERROR:BMP_error"));
     while (1);
   }
   /* Default settings from datasheet. */
@@ -98,22 +98,26 @@ void setup() {
     digitalWrite(LEDPIN, HIGH);
     delay(300);
   }
-  Serial.println(F("DV_MSG:AKAG!"))           ;
+  Serial.println(("DV_MSG:AwakeAgain!"));
+  Serial.flush();
+  delay(1000);
+}
+void sendWData()
+{
+  float temp = bmp.readTemperature();
+  float pres = bmp.readPressure();
+  float voltage =   batVoltage();
+  static char sdata[50];
+  char * s = sdata;
+  s += sprintf(s, "DV_DATA:T:%.2f,", temp);
+  s += sprintf(s, "P:%.2f,", pres);
+  s += sprintf(s, "V:%.3f", voltage);
+  Serial.println(sdata);
+  Serial.flush();
+  delay(1000);
 }
 
 void loop() {
-  Serial.print(F("DV_DATA:"));
-  Serial.print(F("T:"));
-  Serial.print(bmp.readTemperature());
-  Serial.print(F(","));
-
-  Serial.print(F("P:"));
-  Serial.print(bmp.readPressure());
-  Serial.print(F(","));
-
-  Serial.print(F("V:"));
-  Serial.print(batVoltage(), 3 );
-  //Serial.print(",");
-  Serial.println("");
+  sendWData();
   goToSleep();
 }
